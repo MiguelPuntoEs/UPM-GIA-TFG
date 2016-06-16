@@ -1,0 +1,400 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Mapa de Avisos de AD</title>
+    <link rel="shortcut icon" href="./icons/aemet.ico" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=***REMOVED***&signed_in=true&callback=initMap&libraries=geometry"></script>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+      .navbar {
+        z-index: 3;
+      }
+      .navbar-brand {
+        padding: 0;
+        margin: 0;
+      }
+      #logo {
+        padding: 7px;
+        height: 50px;
+      }    </style>
+    
+    <style>
+      body, html {
+        height: 100%;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      #map {
+        height: 94.6%;
+        width: 100%;
+        background-color: #006767;
+        position: absolute;
+        top: 50;
+        left: 0;
+        z-index: 1;
+      }
+      th, td {
+        padding-left: 5;
+        padding-right: 5;
+        font-size: 10pt;
+      }
+      #codigo {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: 3;
+        background-color: rgba(255, 255, 255, 0.9);
+        width: 100%;
+        padding: 5px;
+        border: 1px solid black;
+        font-family: monospace;
+/*        font-weight: 700;*/
+        font-size: 12pt;
+      }
+    </style>
+    
+  </head>
+  <body>
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="http://www.aemet.es">
+            <img alt="Brand" src="./icons/aemet.png" id="logo"/>
+          </a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+
+          </ul>
+          
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="sigmet.html">SIGMET/AIRMET</a></li>
+            <li><a href="metar.html">METAR</a></li>
+            <li><a href="taf.html">TAF</a></li>
+            <li><a href="mailto:miguel.gc@me.com"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Enlaces <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="http://www.aviationweather.gov/sigmet/intl?hazard=all&loc=eur&layout=off">Aviation Weather</a></li>
+                <li><a href="http://ama.aemet.es/web/ama">Portal AMA</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="avweather.txt">Formato texto</a></li>
+                <li><a href="fir.html">Mapa de FIR</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+    
+    <div id="map"></div>
+    <div id="codigo"></div>
+   
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <script>
+      $(function() {  //  Equivalente a $(document).ready(function(){});
+        $('#codigo').hide();
+      });
+      var icaoIndicators = [
+        "LECO",
+        "LEAS",
+        "LEXJ",
+        "LEBB",
+        "LESO",
+        "LEST",
+        "LEVX",
+        "LELN",
+        "LEBG",
+        "LEVT",
+        "LELO",
+        "LEPP",
+        "LEVD",
+        "LEZG",
+        "LERS",
+        "LEBL",
+        "LEGE",
+        "LESA",
+        "LECV",
+        "LEMD",
+        "LEVS",
+        "LEGT",
+        "LETO",
+        "LECH",
+        "LEAB",
+        "LEVC",
+        "LEPA",
+        "LEMH",
+        "LEBZ",
+        "LEAL",
+        "LEIB",
+        "LEZL",
+        "LEMO",
+        "LEBA",
+        "LEGR",
+        "LEGA",
+        "LERI",
+        "LELC",
+        "LERT",
+        "LEJR",
+        "LEMG",
+        "LEAM",
+        "GCHI",
+        "GCLA",
+        "GCGM",
+        "GCXO",
+        "GCTS",
+        "GCLP",
+        "GCFV",
+        "GCRR",
+        "GEML",
+        "LESU",
+        "LEAO",
+        "LEHC",
+        "LEDA",
+        "LELL",
+        "LETL",
+        "LEEC",
+        "LEAG"
+      ];
+      var aeropuertos = [
+        "A Coruña",
+        "Asturias",
+        "Santander",
+        "Bilbao",
+        "San Sebastián",
+        "Santiago",
+        "Vigo",
+        "León",
+        "Burgos",
+        "Vitoria",
+        "Logroño",
+        "Pamplona",
+        "Valladolid",
+        "Zaragoza",
+        "Reus",
+        "Barcelona",
+        "Girona",
+        "Salamanca",
+        "Madrid / Colmenar Viejo",
+        "Madrid / Barajas",
+        "Madrid / Cuatro Vientos",
+        "Madrid / Getafe",
+        "Madrid / Torrejón",
+        "Castellón",
+        "Albacete",
+        "Valencia",
+        "Palma De Mallorca",
+        "Menorca",
+        "Badajoz",
+        "Alicante",
+        "Ibiza",
+        "Sevilla",
+        "Morón De La Frontera",
+        "Córdoba",
+        "Granada",
+        "Granada / Armilla",
+        "Murcia / Alcantarilla",
+        "Murcia / San Javier",
+        "Rota",
+        "Jerez De La Frontera",
+        "Málaga",
+        "Almería",
+        "Hierro",
+        "La Palma",
+        "La Gomera",
+        "Tenerife Norte",
+        "Tenerife Sur",
+        "Las Palmas De Gran Canaria",
+        "Fuerteventura",
+        "Lanzarote",
+        "Melilla",
+        "Andorra-La Seu",
+        "Almagro",
+        "Huesca",
+        "Lleida",
+        "Sabadell",
+        "Teruel",
+        "Sevilla El Copero",
+        "Algeciras"
+      ];
+      var lats = [
+        43.3,
+        43.55,
+        43.4333,
+        43.3,
+        43.35,
+        42.9,
+        42.2167,
+        42.5833,
+        42.3667,
+        42.8833,
+        42.45,
+        42.7667,
+        41.7167,
+        41.6667,
+        41.15,
+        41.2833,
+        41.9,
+        40.95,
+        40.65,
+        40.45,
+        40.3833,
+        40.3,
+        40.4833,
+        40.2141,
+        38.95,
+        39.5,
+        39.55,
+        39.8667,
+        38.8833,
+        38.2833,
+        38.8667,
+        37.4167,
+        37.15,
+        37.85,
+        37.1833,
+        37.1361,
+        37.95,
+        37.7833,
+        36.65,
+        36.75,
+        36.6667,
+        36.85,
+        27.8167,
+        28.6167,
+        28.0167,
+        28.4667,
+        28.05,
+        27.9333,
+        28.45,
+        28.95,
+        35.2833,
+        42.3461,
+        38.9533,
+        42.0808,
+        41.728,
+        41.5208,
+        40.4119,
+        37.313,
+        36.1288
+      ];
+      var longs = [
+        -8.3833,
+        -6.0333,
+        -3.8167,
+        -2.9333,
+        -1.8,
+        -8.4333,
+        -8.6333,
+        -5.65,
+        -3.6333,
+        -2.7167,
+        -2.3333,
+        -1.6333,
+        -4.85,
+        -1.0167,
+        1.1667,
+        2.0667,
+        2.7667,
+        -5.5,
+        -3.7333,
+        -3.55,
+        -3.7833,
+        -3.7167,
+        -3.45,
+        0.0736,
+        -1.85,
+        -0.4667,
+        2.7333,
+        4.2333,
+        -6.8167,
+        -0.5,
+        1.3833,
+        -5.9,
+        -5.6167,
+        -4.85,
+        -3.7833,
+        -3.6311,
+        -1.2333,
+        -0.8,
+        -6.35,
+        -6.0667,
+        -4.4833,
+        -2.3833,
+        -17.8833,
+        -17.75,
+        -17.2167,
+        -16.3167,
+        -16.5667,
+        -15.3833,
+        -13.8667,
+        -13.6,
+        -2.95,
+        1.4147,
+        -3.7413,
+        -0.3233,
+        0.5352,
+        2.105,
+        -1.2175,
+        -5.9991,
+        -5.4411
+      ];
+
+      var map;
+      function initMap() {
+        var centro = new google.maps.LatLng(40.4, -3);
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 6,
+          center: centro,
+          mapTypeId: google.maps.MapTypeId.TERRAIN,
+          draggableCursor: 'pointer'
+        });
+        var icon = {
+          url: './symbols/airport.png', // url
+          scaledSize: new google.maps.Size(30, 30), // scaled size
+          origin: new google.maps.Point(0,0), // origin
+          anchor: new google.maps.Point(15, 15) // anchor
+        };   
+        aeropuertos.forEach(function(item, index){
+          $.get('getMessage.php?tipo=aviso&icao='+icaoIndicators[index], function(data, status){
+            if(data != false) {
+              var myLatLng = {lat: lats[index], lng: longs[index]};
+              var marker = new google.maps.Marker({
+                position: myLatLng,
+                map: map,
+                title: aeropuertos[index],
+                icon: icon
+              });
+              // var infowindow = new google.maps.InfoWindow({
+              //   content: data
+              // });
+              marker.addListener('mouseover', function() {
+                $('#codigo').html(data);
+                $('#codigo').show();
+                // infowindow.open(map, marker);
+              });
+              marker.addListener('mouseout', function() {
+                $('#codigo').hide();
+                // infowindow.close();
+              });
+            }
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
